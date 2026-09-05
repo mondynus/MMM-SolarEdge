@@ -1,0 +1,21 @@
+{
+  "name": "mmm-solaredge",
+  "version": "1.0.0",
+  "description": "MagicMirror² module for displaying today's energy production and current power output from SolarEdge Monitoring API.",
+  "main": "MMM-SolarEdge.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "magicmirror",
+    "module",
+    "solaredge",
+    "solar",
+    "energy"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

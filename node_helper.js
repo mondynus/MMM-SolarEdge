@@ -1,72 +1,57 @@
 const NodeHelper = require("node_helper");
-const https = require("https");
+const Log = require("logger");
 
 module.exports = NodeHelper.create({
   start() {
+    Log.info(`Starting node_helper for module: ${this.name}`);
     this.timer = null;
   },
 
-  socketNotificationReceived(notification, config) {
-    if (notification !== "SOLAREDGE_CONFIG") {
-      return;
+  socketNotificationReceived(notification, payload) {
+    if (notification === "SOLAREDGE_CONFIG") {
+      this.config = payload;
+      this.fetchData();
+
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
+
+      const updateInterval = Math.max(Number(payload.updateInterval) || 300000, 60000);
+      this.timer = setInterval(() => {
+        this.fetchData();
+      }, updateInterval);
     }
-
-    this.config = config;
-    this.fetchData();
-
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
-
-    this.timer = setInterval(
-      () => this.fetchData(),
-      Math.max(Number(config.updateInterval) || 300000, 60000)
-    );
   },
 
-  fetchData() {
+  async fetchData() {
     const { apiKey, siteId } = this.config || {};
     if (!apiKey || !siteId) {
-      this.sendSocketNotification("SOLAREDGE_DATA", {
-        error: "Chýba apiKey alebo siteId v konfigurácii.",
-        siteName: "",
-        todayEnergy: null,
-        currentPower: null,
-        updatedAt: null
-      });
+      this.sendError("Chýba apiKey alebo siteId v konfigurácii.");
       return;
     }
 
-    const query = new URLSearchParams({
-      api_key: String(apiKey),
-      startTime: this.localStartOfDay(),
-      endTime: this.localEndOfDay()
-    });
-    const url = `https://monitoringapi.solaredge.com/site/${encodeURIComponent(siteId)}/overview?${query}`;
-
-    https.get(url, { headers: { Accept: "application/json" } }, (response) => {
-      let body = "";
-      response.setEncoding("utf8");
-      response.on("data", (chunk) => { body += chunk; });
-      response.on("end", () => this.handleResponse(response.statusCode, body));
-    }).on("error", (error) => this.sendError(`SolarEdge: ${error.message}`));
-  },
-
-  handleResponse(statusCode, body) {
-    if (statusCode !== 200) {
-      this.sendError(`SolarEdge API vrátilo HTTP ${statusCode}.`);
-      return;
-    }
+    const url = `https://monitoringapi.solaredge.com/site/${encodeURIComponent(siteId)}/overview?api_key=${encodeURIComponent(apiKey)}`;
 
     try {
-      const response = JSON.parse(body);
-      const overview = response.overview;
+      const response = await fetch(url, {
+        headers: { Accept: "application/json" }
+      });
+
+      if (!response.ok) {
+        this.sendError(`SolarEdge API vrátilo HTTP ${response.status}: ${response.statusText}`);
+        return;
+      }
+
+      const data = await response.json();
+      const overview = data && data.overview;
       if (!overview) {
-        throw new Error("Odpoveď neobsahuje overview.");
+        this.sendError("Odpoveď neobsahuje dáta 'overview'.");
+        return;
       }
 
       const todayEnergyWh = Number(overview.lastDayData && overview.lastDayData.energy);
       const currentPower = Number(overview.currentPower && overview.currentPower.power);
+
       this.sendSocketNotification("SOLAREDGE_DATA", {
         error: null,
         siteName: overview.name || "",
@@ -78,11 +63,13 @@ module.exports = NodeHelper.create({
         })
       });
     } catch (error) {
-      this.sendError(`SolarEdge dáta sa nedajú spracovať: ${error.message}`);
+      Log.error(`[MMM-SolarEdge] Error fetching data: ${error.message}`);
+      this.sendError(`SolarEdge chyba: ${error.message}`);
     }
   },
 
   sendError(message) {
+    Log.error(`[MMM-SolarEdge] ${message}`);
     this.sendSocketNotification("SOLAREDGE_DATA", {
       error: message,
       siteName: "SolarEdge",
@@ -92,20 +79,9 @@ module.exports = NodeHelper.create({
     });
   },
 
-  localStartOfDay() {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    return this.formatDate(date);
-  },
-
-  localEndOfDay() {
-    const date = new Date();
-    date.setHours(23, 59, 59, 999);
-    return this.formatDate(date);
-  },
-
-  formatDate(date) {
-    const pad = (value) => String(value).padStart(2, "0");
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 });

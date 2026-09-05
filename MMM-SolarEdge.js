@@ -1,5 +1,9 @@
 Module.register("MMM-SolarEdge", {
+  requiresVersion: "2.29.0",
+
   defaults: {
+    apiKey: "",
+    siteId: "",
     updateInterval: 5 * 60 * 1000,
     animationSpeed: 1000,
     showSiteName: true,
@@ -7,13 +11,14 @@ Module.register("MMM-SolarEdge", {
   },
 
   start() {
-    this.data = {
+    this.solarData = {
       siteName: "",
       todayEnergy: null,
       currentPower: null,
       updatedAt: null,
       error: null
     };
+    this.loaded = false;
 
     this.sendSocketNotification("SOLAREDGE_CONFIG", {
       apiKey: this.config.apiKey,
@@ -30,31 +35,37 @@ Module.register("MMM-SolarEdge", {
     const wrapper = document.createElement("div");
     wrapper.className = "solaredge-wrapper";
 
-    if (this.data.error) {
+    if (!this.loaded && !this.solarData.error) {
+      wrapper.innerHTML = "Nahrávam...";
+      wrapper.className = "dimmed light small";
+      return wrapper;
+    }
+
+    if (this.solarData.error) {
       const error = document.createElement("div");
       error.className = "solaredge-error";
-      error.textContent = this.data.error;
+      error.textContent = this.solarData.error;
       wrapper.appendChild(error);
       return wrapper;
     }
 
     const title = document.createElement("div");
     title.className = "solaredge-title";
-    title.textContent = this.config.showSiteName && this.data.siteName
-      ? this.data.siteName
+    title.textContent = this.config.showSiteName && this.solarData.siteName
+      ? this.solarData.siteName
       : "SolarEdge";
     wrapper.appendChild(title);
 
     const values = document.createElement("div");
     values.className = "solaredge-values";
-    values.appendChild(this.createValue("Dnes", this.data.todayEnergy, "kWh"));
-    values.appendChild(this.createValue("Teraz", this.data.currentPower, "W"));
+    values.appendChild(this.createValue("Dnes", this.solarData.todayEnergy, "kWh"));
+    values.appendChild(this.createValue("Teraz", this.solarData.currentPower, "W"));
     wrapper.appendChild(values);
 
-    if (this.data.updatedAt) {
+    if (this.solarData.updatedAt) {
       const updated = document.createElement("div");
       updated.className = "solaredge-updated";
-      updated.textContent = `Aktualizované ${this.data.updatedAt}`;
+      updated.textContent = `Aktualizované ${this.solarData.updatedAt}`;
       wrapper.appendChild(updated);
     }
 
@@ -79,11 +90,10 @@ Module.register("MMM-SolarEdge", {
   },
 
   socketNotificationReceived(notification, payload) {
-    if (notification !== "SOLAREDGE_DATA") {
-      return;
+    if (notification === "SOLAREDGE_DATA") {
+      this.solarData = payload;
+      this.loaded = true;
+      this.updateDom(this.config.animationSpeed);
     }
-
-    this.data = payload;
-    this.updateDom(this.config.animationSpeed);
   }
 });

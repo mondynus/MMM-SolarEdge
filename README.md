@@ -1,6 +1,6 @@
 # MMM-SolarEdge
 
-Jednoduchý modul pre MagicMirror², ktorý zobrazuje dnešnú vyrobenú energiu a aktuálny výkon zo SolarEdge Monitoring API.
+Jednoduchý modul pre MagicMirror² (kompatibilný s v2.29.0+), ktorý zobrazuje dnešnú vyrobenú energiu a aktuálny výkon zo SolarEdge Monitoring API.
 
 ## Inštalácia
 
@@ -22,7 +22,8 @@ Skopíruj tento priečinok do `MagicMirror/modules/MMM-SolarEdge` a pridaj do `c
 
 ## Poznámky
 
+- Kompatibilný s **MagicMirror² v2.29.0** a Node.js 18+.
 - Hodnota **Dnes** je v kWh.
 - Hodnota **Teraz** je vo wattoch.
-- SolarEdge API má limity požiadaviek, preto modul aktualizuje dáta najskôr každú minútu.
+- SolarEdge API má limity požiadaviek, preto modul aktualizuje dáta najskôr každú minútu (odporúčané 5 minút).
 - API kľúč ostáva v `node_helper.js` na serverovej strane a neposiela sa do DOM.
