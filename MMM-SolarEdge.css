@@ -1,0 +1,44 @@
+.solaredge-wrapper {
+  min-width: 250px;
+  color: #f4f7f5;
+  font-family: sans-serif;
+}
+
+.solaredge-title {
+  margin-bottom: 12px;
+  color: #f6c453;
+  font-size: 20px;
+}
+
+.solaredge-values {
+  display: flex;
+  gap: 28px;
+}
+
+.solaredge-value {
+  display: flex;
+  flex-direction: column;
+}
+
+.solaredge-label {
+  color: #aab5b0;
+  font-size: 14px;
+}
+
+.solaredge-number {
+  margin-top: 3px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.solaredge-updated {
+  margin-top: 12px;
+  color: #7d8984;
+  font-size: 12px;
+}
+
+.solaredge-error {
+  max-width: 280px;
+  color: #ff8d8d;
+  font-size: 14px;
+}
