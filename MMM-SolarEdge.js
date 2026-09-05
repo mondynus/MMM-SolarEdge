@@ -16,6 +16,8 @@ Module.register("MMM-SolarEdge", {
       siteName: "",
       todayEnergy: null,
       currentPower: null,
+      monthEnergy: null,
+      lifetimeEnergy: null,
       updatedAt: null,
       error: null
     };
@@ -61,15 +63,21 @@ Module.register("MMM-SolarEdge", {
     values.className = "solaredge-values";
     values.appendChild(this.createValue("Dnes", this.solarData.todayEnergy, "kWh"));
     values.appendChild(this.createValue("Teraz", this.solarData.currentPower, "W"));
-    if (this.solarData.updatedAt) {
-      values.appendChild(this.createValue("Aktualizované", this.solarData.updatedAt, ""));
-    }
+    values.appendChild(this.createValue("Tento mesiac", this.solarData.monthEnergy, "kWh"));
+    values.appendChild(this.createValue("Celkovo", this.solarData.lifetimeEnergy, "kWh"));
     wrapper.appendChild(values);
+
+    if (this.solarData.updatedAt) {
+      const updated = document.createElement("div");
+      updated.className = "solaredge-updated";
+      updated.textContent = `Aktualizované ${this.solarData.updatedAt}`;
+      wrapper.appendChild(updated);
+    }
 
     return wrapper;
   },
 
-  createValue(label, value, unit) {
+  createValue(label, data, defaultUnit) {
     const element = document.createElement("div");
     element.className = "solaredge-value";
 
@@ -77,9 +85,18 @@ Module.register("MMM-SolarEdge", {
     labelElement.className = "solaredge-label";
     labelElement.textContent = label;
 
+    let displayStr = "--";
+    if (data !== null && data !== undefined) {
+      if (typeof data === "object" && data.value !== undefined) {
+        displayStr = `${data.value} ${data.unit || defaultUnit}`;
+      } else {
+        displayStr = `${data} ${defaultUnit}`;
+      }
+    }
+
     const valueElement = document.createElement("span");
     valueElement.className = "solaredge-number";
-    valueElement.textContent = value === null ? "--" : (unit ? `${value} ${unit}` : value);
+    valueElement.textContent = displayStr;
 
     element.appendChild(labelElement);
     element.appendChild(valueElement);

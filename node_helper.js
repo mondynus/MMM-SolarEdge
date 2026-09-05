@@ -49,14 +49,18 @@ module.exports = NodeHelper.create({
         return;
       }
 
-      const todayEnergyWh = Number(overview.lastDayData && overview.lastDayData.energy);
+      const todayWh = Number(overview.lastDayData && overview.lastDayData.energy);
+      const monthWh = Number(overview.lastMonthData && overview.lastMonthData.energy);
+      const lifetimeWh = Number(overview.lifeTimeData && overview.lifeTimeData.energy);
       const currentPower = Number(overview.currentPower && overview.currentPower.power);
 
       this.sendSocketNotification("SOLAREDGE_DATA", {
         error: null,
         siteName: overview.name || "",
-        todayEnergy: Number.isFinite(todayEnergyWh) ? (todayEnergyWh / 1000).toFixed(2) : null,
+        todayEnergy: this.formatEnergy(todayWh),
         currentPower: Number.isFinite(currentPower) ? Math.round(currentPower) : null,
+        monthEnergy: this.formatEnergy(monthWh),
+        lifetimeEnergy: this.formatEnergy(lifetimeWh),
         updatedAt: new Date().toLocaleTimeString("sk-SK", {
           hour: "2-digit",
           minute: "2-digit"
@@ -68,6 +72,14 @@ module.exports = NodeHelper.create({
     }
   },
 
+  formatEnergy(wh) {
+    if (!Number.isFinite(wh)) return null;
+    if (wh >= 1000000) {
+      return { value: (wh / 1000000).toFixed(2), unit: "MWh" };
+    }
+    return { value: (wh / 1000).toFixed(2), unit: "kWh" };
+  },
+
   sendError(message) {
     Log.error(`[MMM-SolarEdge] ${message}`);
     this.sendSocketNotification("SOLAREDGE_DATA", {
@@ -75,6 +87,8 @@ module.exports = NodeHelper.create({
       siteName: "Moja FVE",
       todayEnergy: null,
       currentPower: null,
+      monthEnergy: null,
+      lifetimeEnergy: null,
       updatedAt: null
     });
   },
