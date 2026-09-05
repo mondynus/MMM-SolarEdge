@@ -2,11 +2,12 @@ Module.register("MMM-SolarEdge", {
   requiresVersion: "2.29.0",
 
   defaults: {
+    title: "Moja FVE",
     apiKey: "",
     siteId: "",
     updateInterval: 5 * 60 * 1000,
     animationSpeed: 1000,
-    showSiteName: true,
+    showSiteName: false,
     units: "kWh"
   },
 
@@ -53,21 +54,17 @@ Module.register("MMM-SolarEdge", {
     title.className = "solaredge-title";
     title.textContent = this.config.showSiteName && this.solarData.siteName
       ? this.solarData.siteName
-      : "SolarEdge";
+      : (this.config.title || "Moja FVE");
     wrapper.appendChild(title);
 
     const values = document.createElement("div");
     values.className = "solaredge-values";
     values.appendChild(this.createValue("Dnes", this.solarData.todayEnergy, "kWh"));
     values.appendChild(this.createValue("Teraz", this.solarData.currentPower, "W"));
-    wrapper.appendChild(values);
-
     if (this.solarData.updatedAt) {
-      const updated = document.createElement("div");
-      updated.className = "solaredge-updated";
-      updated.textContent = `Aktualizované ${this.solarData.updatedAt}`;
-      wrapper.appendChild(updated);
+      values.appendChild(this.createValue("Aktualizované", this.solarData.updatedAt, ""));
     }
+    wrapper.appendChild(values);
 
     return wrapper;
   },
@@ -82,7 +79,7 @@ Module.register("MMM-SolarEdge", {
 
     const valueElement = document.createElement("span");
     valueElement.className = "solaredge-number";
-    valueElement.textContent = value === null ? "--" : `${value} ${unit}`;
+    valueElement.textContent = value === null ? "--" : (unit ? `${value} ${unit}` : value);
 
     element.appendChild(labelElement);
     element.appendChild(valueElement);

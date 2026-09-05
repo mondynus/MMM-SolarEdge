@@ -72,7 +72,7 @@ module.exports = NodeHelper.create({
     Log.error(`[MMM-SolarEdge] ${message}`);
     this.sendSocketNotification("SOLAREDGE_DATA", {
       error: message,
-      siteName: "SolarEdge",
+      siteName: "Moja FVE",
       todayEnergy: null,
       currentPower: null,
       updatedAt: null

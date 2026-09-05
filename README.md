@@ -11,6 +11,7 @@ Skopíruj tento priečinok do `MagicMirror/modules/MMM-SolarEdge` a pridaj do `c
   module: "MMM-SolarEdge",
   position: "top_right",
   config: {
+    title: "Moja FVE",
     apiKey: "TVOJ_SOLAREDGE_API_KEY",
     siteId: "TVOJE_SITE_ID",
     updateInterval: 5 * 60 * 1000
@@ -18,7 +19,7 @@ Skopíruj tento priečinok do `MagicMirror/modules/MMM-SolarEdge` a pridaj do `c
 }
 ```
 
-`apiKey` vytvoríš v SolarEdge Monitoring portáli v časti **Admin > API Access**. `siteId` nájdeš v URL alebo v detailoch elektrárne.
+`apiKey` vytvoríš v SolarEdge Monitoring portáli v časti **Admin > API Access**. `siteId` nájdeš v URL alebo v detailoch elektrárne. `title` ti umožňuje nastaviť vlastný nadpis modulu (napr. `"Moja FVE"`). Ak chceš použiť názov elektrárne zo SolarEdge API, nastav `showSiteName: true`.
 
 ## Poznámky
 
